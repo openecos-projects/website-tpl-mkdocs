@@ -1,1 +1,1 @@
-# Website Template for MkDocs
+# Website template for MkDocs
