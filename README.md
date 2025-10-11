@@ -1,1 +1,1 @@
-# ECOS Template
+# Website Template for MkDocs
