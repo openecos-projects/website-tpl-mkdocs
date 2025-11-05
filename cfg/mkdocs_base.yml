@@ -128,7 +128,6 @@ markdown_extensions:
 extra_javascript:
   - assets/javascripts/mathjax.js
   - https://unpkg.com/mathjax@3/es5/tex-mml-chtml.js
-  - https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4
+
 extra_css:
   - assets/stylesheets/extra.css
-  - assets/stylesheets/tailwind.min.css
