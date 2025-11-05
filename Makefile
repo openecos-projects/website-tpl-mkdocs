@@ -8,7 +8,7 @@ PY_REQUIREMENTS := tpl/pkg/requirements.txt
 NODE_MODULES := ./node_modules
 
 FILE_TAILWIND     := tailwind
-FILE_TAILWIND_INT := tpl/theme/$(FILE_TAILWIND).css
+FILE_TAILWIND_INT := tpl/theme/assets/stylesheets/$(FILE_TAILWIND).css
 FILE_TAILWIND_MIN := tpl/theme/assets/stylesheets/$(FILE_TAILWIND).min.css
 
 .PHONY: serve build build-rtd gen-css gen-news clean-link clean-venv clean-node check-venv
