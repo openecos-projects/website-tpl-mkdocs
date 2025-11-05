@@ -39,7 +39,7 @@ build: | check-venv
 build-rtd: | check-venv
 	@echo "Building documentation..."
 	. $(PY_ACTIVATE) && mkdocs build -f $(MKDOCS_YML) --site-dir $(READTHEDOCS_OUTPUT)/html
-	@python3 tpl/script/compress_image.py $(READTHEDOCS_OUTPUT)/html
+	. $(PY_ACTIVATE) tpl/script/compress_image.py $(READTHEDOCS_OUTPUT)/html
 
 build-web: | check-venv gen-css gen-news
 	@echo "Building documentation..."
