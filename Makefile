@@ -51,7 +51,7 @@ gen-css: $(NODE_MODULES)
 
 gen-news:
 	@echo "Generating news html..."
-	@python3 tpl/script/generate_news_html.py
+	. $(PY_ACTIVATE) && python3 tpl/script/generate_news_html.py
 
 clean:
 	@echo "Deleting documentation..."
