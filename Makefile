@@ -11,10 +11,9 @@ FILE_TAILWIND     := tailwind
 FILE_TAILWIND_INT := tpl/theme/assets/stylesheets/$(FILE_TAILWIND).css
 FILE_TAILWIND_MIN := tpl/theme/assets/stylesheets/$(FILE_TAILWIND).min.css
 
-.PHONY: serve build build-rtd gen-css gen-news clean-link clean-venv clean-node check-venv
+FILE_POST := $(shell find src/*/news/posts -name "*.md" 2>/dev/null || true)
 
-$(NODE_MODULES):
-	npm install tailwindcss @tailwindcss/cli
+.PHONY: serve serve-web build build-rtd build-web gen-css gen-news clean-link clean-venv clean-node check-venv
 
 $(PY_VENV_DIR)/bin/python:
 	@echo "Creating virtual environment..."
@@ -22,7 +21,14 @@ $(PY_VENV_DIR)/bin/python:
 	@echo "Installing requirements..."
 	. $(PY_ACTIVATE) && pip install -r $(PY_REQUIREMENTS)
 
+$(NODE_MODULES):
+	npm install tailwindcss @tailwindcss/cli
+
 serve: | check-venv
+	@echo "Starting MkDocs server..."
+	. $(PY_ACTIVATE) && mkdocs serve -f $(MKDOCS_YML)
+
+serve-web: | check-venv gen-css gen-news
 	@echo "Starting MkDocs server..."
 	. $(PY_ACTIVATE) && mkdocs serve -f $(MKDOCS_YML)
 
@@ -35,10 +41,15 @@ build-rtd: | check-venv
 	. $(PY_ACTIVATE) && mkdocs build -f $(MKDOCS_YML) --site-dir $(READTHEDOCS_OUTPUT)/html
 	@python3 tpl/script/compress_image.py $(READTHEDOCS_OUTPUT)/html
 
-gen-css: $(NODE_MODULES) $(FILE_TAILWIND_INT)
-	npx @tailwindcss/cli -i $(FILE_TAILWIND_INT) -o $(FILE_TAILWIND_MIN) -m
+build-web: | check-venv gen-css gen-news
+	@echo "Building documentation..."
+	. $(PY_ACTIVATE) && mkdocs build -f $(MKDOCS_YML)
 
-gen-news: | check-venv
+gen-css: $(NODE_MODULES)
+	@echo "Generating tailwind css..."
+	npx @tailwindcss/cli -i $(FILE_TAILWIND_INT) -o $(FILE_TAILWIND_MIN)
+
+gen-news:
 	@echo "Generating news html..."
 	@python3 tpl/script/generate_news_html.py
 
