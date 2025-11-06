@@ -13,6 +13,8 @@ FILE_TAILWIND_MIN := tpl/theme/assets/stylesheets/$(FILE_TAILWIND).min.css
 
 FILE_HTML := $(shell find ./src -name "*.html" 2>/dev/null || true)
 
+SITE_DIR := $(READTHEDOCS_OUTPUT)/html$(if $(filter en, $(MKDOCS_LANG)),/en,)
+
 .PHONY: check-venv check-node serve serve-web build build-rtd gen gen-news gen-css clean clean-link clean-venv clean-node clean-gen clean-site
 
 $(PY_VENV_DIR)/bin/python:
@@ -43,8 +45,8 @@ build: check-venv
 
 build-rtd: check-venv
 	@echo "Building documentation..."
-	. $(PY_ACTIVATE) && mkdocs build -f $(MKDOCS_YML) --site-dir $(READTHEDOCS_OUTPUT)/html
-	. $(PY_ACTIVATE) tpl/script/compress_image.py $(READTHEDOCS_OUTPUT)/html
+	. $(PY_ACTIVATE) && mkdocs build -f $(MKDOCS_YML) --site-dir $(SITE_DIR)
+	. $(PY_ACTIVATE) tpl/script/compress_image.py $(SITE_DIR)
 
 gen: gen-news gen-css
 
