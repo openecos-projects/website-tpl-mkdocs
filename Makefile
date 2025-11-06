@@ -54,7 +54,7 @@ gen-news: check-venv
 
 gen-css: check-node
 	@echo "Generating tailwind css..."
-	npx @tailwindcss/cli -i $(FILE_TAILWIND_INT) -o $(FILE_TAILWIND_MIN)
+	npx @tailwindcss/cli -i $(FILE_TAILWIND_INT) -o $(FILE_TAILWIND_MIN) -m
 
 clean: clean-venv clean-node clean-gen clean-site
 
