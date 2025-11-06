@@ -11,9 +11,9 @@ FILE_TAILWIND     := tailwind
 FILE_TAILWIND_INT := tpl/theme/assets/stylesheets/$(FILE_TAILWIND).css
 FILE_TAILWIND_MIN := tpl/theme/assets/stylesheets/$(FILE_TAILWIND).min.css
 
-FILE_POST := $(shell find src/*/news/posts -name "*.md" 2>/dev/null || true)
+FILE_HTML := $(shell find ./src -name "*.html" 2>/dev/null || true)
 
-.PHONY: serve serve-web build build-rtd build-web gen-css gen-news gen-web clean clean-link clean-venv clean-node check-venv
+.PHONY: check-venv check-node serve serve-web build build-rtd gen gen-news gen-css clean clean-link clean-venv clean-node clean-gen clean-site
 
 $(PY_VENV_DIR)/bin/python:
 	@echo "Creating virtual environment..."
@@ -22,42 +22,44 @@ $(PY_VENV_DIR)/bin/python:
 	. $(PY_ACTIVATE) && pip install -r $(PY_REQUIREMENTS)
 
 $(NODE_MODULES):
+	@echo "Installing nodejs packages..."
 	npm install tailwindcss @tailwindcss/cli
 
-serve: | check-venv
+check-venv: $(PY_VENV_DIR)/bin/python
+
+check-node: $(NODE_MODULES)
+
+serve: check-venv
 	@echo "Starting MkDocs server..."
 	. $(PY_ACTIVATE) && mkdocs serve -f $(MKDOCS_YML)
 
-serve-web: | check-venv gen-css gen-news
+serve-web: check-venv gen
 	@echo "Starting MkDocs server..."
 	. $(PY_ACTIVATE) && mkdocs serve -f $(MKDOCS_YML)
 
-build: | check-venv
+build: check-venv
 	@echo "Building documentation..."
 	. $(PY_ACTIVATE) && mkdocs build -f $(MKDOCS_YML)
 
-build-rtd: | check-venv
+build-rtd: check-venv
 	@echo "Building documentation..."
 	. $(PY_ACTIVATE) && mkdocs build -f $(MKDOCS_YML) --site-dir $(READTHEDOCS_OUTPUT)/html
 	. $(PY_ACTIVATE) tpl/script/compress_image.py $(READTHEDOCS_OUTPUT)/html
 
-gen-css: $(NODE_MODULES)
-	@echo "Generating tailwind css..."
-	./node_modules/.bin/tailwindcss -i $(FILE_TAILWIND_INT) -o $(FILE_TAILWIND_MIN)
+gen: gen-news gen-css
 
-gen-news:
+gen-news: check-venv
 	@echo "Generating news html..."
 	. $(PY_ACTIVATE) && python3 tpl/script/generate_news_html.py
 
-gen-web: | check-venv gen-css gen-news
-	@echo "Generating documentation..."
+gen-css: check-node
+	@echo "Generating tailwind css..."
+	npx @tailwindcss/cli -i $(FILE_TAILWIND_INT) -o $(FILE_TAILWIND_MIN)
 
-clean:
-	@echo "Deleting documentation..."
-	rm -rf site
+clean: clean-venv clean-node clean-gen clean-site
 
 clean-link:
-	@echo "Cleaning up..."
+	@echo "Cleaning up repository's link..."
 	@for target in $(LINK_TARGET); do \
 		if [ -L "$$target/res" ]; then \
 			echo "Removing symlink: $$target/res"; \
@@ -66,10 +68,18 @@ clean-link:
 	done
 
 clean-venv:
+	@echo "Cleaning up virtual environment..."
 	rm -rf .venv
 
 clean-node:
+	@echo "Cleaning up nodejs packages..."
 	rm -rf $(NODE_MODULES)
 	rm -f package.json package-lock.json
 
-check-venv: $(PY_VENV_DIR)/bin/python
+clean-gen:
+	@echo "Cleaning up dynamic files..."
+	rm -f $(FILE_HTML) $(FILE_TAILWIND_MIN)
+
+clean-site:
+	@echo "Cleaning up site..."
+	rm -rf site
