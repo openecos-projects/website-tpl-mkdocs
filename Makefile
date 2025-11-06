@@ -13,7 +13,7 @@ FILE_TAILWIND_MIN := tpl/theme/assets/stylesheets/$(FILE_TAILWIND).min.css
 
 FILE_POST := $(shell find src/*/news/posts -name "*.md" 2>/dev/null || true)
 
-.PHONY: serve serve-web build build-rtd build-web gen-css gen-news clean-link clean-venv clean-node check-venv
+.PHONY: serve serve-web build build-rtd build-web gen-css gen-news gen-web clean clean-link clean-venv clean-node check-venv
 
 $(PY_VENV_DIR)/bin/python:
 	@echo "Creating virtual environment..."
@@ -41,10 +41,6 @@ build-rtd: | check-venv
 	. $(PY_ACTIVATE) && mkdocs build -f $(MKDOCS_YML) --site-dir $(READTHEDOCS_OUTPUT)/html
 	. $(PY_ACTIVATE) tpl/script/compress_image.py $(READTHEDOCS_OUTPUT)/html
 
-build-web: | check-venv gen-css gen-news
-	@echo "Building documentation..."
-	. $(PY_ACTIVATE) && mkdocs build -f $(MKDOCS_YML)
-
 gen-css: $(NODE_MODULES)
 	@echo "Generating tailwind css..."
 	npx @tailwindcss/cli -i $(FILE_TAILWIND_INT) -o $(FILE_TAILWIND_MIN)
@@ -52,6 +48,9 @@ gen-css: $(NODE_MODULES)
 gen-news:
 	@echo "Generating news html..."
 	. $(PY_ACTIVATE) && python3 tpl/script/generate_news_html.py
+
+gen-web: | check-venv gen-css gen-news
+	@echo "Generating documentation..."
 
 clean:
 	@echo "Deleting documentation..."
