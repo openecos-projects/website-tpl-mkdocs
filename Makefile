@@ -43,7 +43,7 @@ build-rtd: | check-venv
 
 gen-css: $(NODE_MODULES)
 	@echo "Generating tailwind css..."
-	npx @tailwindcss/cli -i $(FILE_TAILWIND_INT) -o $(FILE_TAILWIND_MIN)
+	./node_modules/.bin/tailwindcss -i $(FILE_TAILWIND_INT) -o $(FILE_TAILWIND_MIN)
 
 gen-news:
 	@echo "Generating news html..."
