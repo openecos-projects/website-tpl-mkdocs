@@ -47,6 +47,7 @@ build-rtd: check-venv
 	@echo "Building documentation..."
 	. $(PY_ACTIVATE) && mkdocs build -f $(MKDOCS_YML) --site-dir $(SITE_DIR)
 	. $(PY_ACTIVATE) tpl/script/compress_image.py $(SITE_DIR)
+	ls -al $(SITE_DIR)
 
 gen: gen-news gen-css
 
