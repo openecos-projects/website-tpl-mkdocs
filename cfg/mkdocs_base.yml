@@ -36,17 +36,17 @@ plugins:
       type: iso_date
   - git-committers:
       enabled: false
-      repository: ecoslab/ecos-tpl-mkdocs
+      repository:
       branch: main
       exclude:
         - index.md
 
 extra:
   alternate:
-    - name: "中文"
+    - name: 中文
       link: /
       lang: zh
-    - name: "English"
+    - name: English
       link: /en/
       lang: en
   consent:
