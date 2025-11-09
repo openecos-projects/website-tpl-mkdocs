@@ -21,4 +21,14 @@
             class="ecos-cc"
             src="https://mirrors.creativecommons.org/presskit/buttons/88x31/png/by-nc-sa.png" />
     </div>
+    {% if config.extra.beian %}
+        <div class="ecos-beian">
+            {% if config.extra.beian.miit %}
+                <a href="https://beian.miit.gov.cn" target="_blank">{{ config.extra.beian.miit }}</a>
+            {% endif %}
+            {% if config.extra.beian.mps %}
+                <a href="https://beian.mps.gov.cn" target="_blank">{{ config.extra.beian.mps }}</a>
+            {% endif %}
+        </div>
+    {% endif %}
 </div>
