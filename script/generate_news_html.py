@@ -5,6 +5,15 @@ import re
 import yaml
 from typing import List, Dict, Optional
 
+def get_environment() -> str:
+    """
+    Get the MKDOCS_ENV environment variable.
+
+    Returns:
+        Environment name
+    """
+    return os.environ.get("MKDOCS_ENV", "serve")
+
 def get_meta_data(post_path: str) -> Optional[Dict]:
     """
     Extract metadata from the front matter of a Markdown post file.
@@ -104,7 +113,12 @@ def generate_news_html(post_list: List[Dict], html_file: str) -> None:
         post_list: List of post dictionaries containing metadata
         html_file: Output HTML file path
     """
+    news_path = ""
     html_divs = ""
+
+    if (get_environment() == "deploy"):
+        if "en" in html_file:
+            news_path = "/en"
 
     # Display maximum 3 posts (or all if less than 3)
     post_list_temp = post_list[:3] if len(post_list) > 3 else post_list
@@ -113,7 +127,7 @@ def generate_news_html(post_list: List[Dict], html_file: str) -> None:
     for post in post_list_temp:
         html_divs += f'''
 <div class="my-4">
-    <a href="/news/{post['name']}" style="color: var(--md-typeset-color);">
+    <a href="{news_path}/news/{post['name']}" style="color: var(--md-typeset-color);">
         <div class="font-bold">{post['date']}</div>
         <div>{post['desc']}</div>
     </a>
@@ -141,5 +155,7 @@ def generate_news_html(post_list: List[Dict], html_file: str) -> None:
 
 if __name__ == "__main__":
     # Generate news HTML for Chinese and English versions
-    generate_news_html(get_post_list("src/zh/news/posts"), "src/zh/news.html")
-    generate_news_html(get_post_list("src/en/news/posts"), "src/en/news.html")
+    news_lang_list = ["zh", "en"]
+    for news_lang in news_lang_list:
+        generate_news_html(get_post_list("src/" + news_lang + "/news/posts"),
+                                         "src/" + news_lang + "/news.html")
