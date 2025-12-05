@@ -10,6 +10,14 @@
 }
 .md-content {
     text-align: justify;
+    p {
+        display: block;
+        margin-block-start: 1em;
+        margin-block-end: 1em;
+        margin-inline-start: 0em;
+        margin-inline-end: 0em;
+        unicode-bidi: isolate;
+    }
 }
 
 .ecos-cc {
