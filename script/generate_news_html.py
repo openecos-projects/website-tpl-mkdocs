@@ -105,13 +105,14 @@ def get_post_list(post_dir: str) -> List[Dict]:
 
     return post_list
 
-def generate_news_html(post_list: List[Dict], html_file: str) -> None:
+def generate_news_html(post_list: List[Dict], html_file: str, post_num: int = 3) -> None:
     """
     Generate HTML content from post list and write to file.
 
     Args:
         post_list: List of post dictionaries containing metadata
         html_file: Output HTML file path
+        post_num:  Number of posts displayed
     """
     news_path = ""
     html_divs = ""
@@ -120,8 +121,8 @@ def generate_news_html(post_list: List[Dict], html_file: str) -> None:
         if "en" in html_file:
             news_path = "/en"
 
-    # Display maximum 3 posts (or all if less than 3)
-    post_list_temp = post_list[:3] if len(post_list) > 3 else post_list
+    # Display maximum `post_num` posts (or all if less than `post_num`)
+    post_list_temp = post_list[:post_num] if len(post_list) > post_num else post_list
 
     # Generate HTML div for each post
     for post in post_list_temp:
@@ -134,8 +135,8 @@ def generate_news_html(post_list: List[Dict], html_file: str) -> None:
 </div>
 '''
 
-    # Add "More" link if there are more than 3 posts
-    if len(post_list) > 3:
+    # Add "More" link if there are more than `post_num` posts
+    if len(post_list) > post_num:
         # Use Chinese for Chinese pages, English for others
         more = "查看更多" if "zh" in html_file else "More"
         html_divs += f'''
@@ -158,4 +159,5 @@ if __name__ == "__main__":
     news_lang_list = ["zh", "en"]
     for news_lang in news_lang_list:
         generate_news_html(get_post_list("src/" + news_lang + "/news/posts"),
-                                         "src/" + news_lang + "/news.html")
+                                         "src/" + news_lang + "/news.html",
+                           4)
