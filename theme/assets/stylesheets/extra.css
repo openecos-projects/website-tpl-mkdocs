@@ -7,6 +7,7 @@
 }
 .md-typeset figcaption {
     font-style: normal;
+    margin: 0.5em auto;
 }
 .md-content {
     text-align: justify;
@@ -17,6 +18,19 @@
         margin-inline-start: 0em;
         margin-inline-end: 0em;
         unicode-bidi: isolate;
+    }
+    figure {
+        > p {
+            margin-top: 0px;
+            margin-bottom: 0px;
+        }
+        figcaption {
+            margin-bottom: 0px;
+            > p {
+                margin-top: 0.5em;
+                margin-bottom: 0px;
+            }
+        }
     }
 }
 
