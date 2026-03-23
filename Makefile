@@ -15,7 +15,23 @@ FILE_HTML := $(shell find ./src -name "*.html" 2>/dev/null || true)
 
 SITE_DIR := $(READTHEDOCS_OUTPUT)html
 
-.PHONY: check-venv check-node serve-doc serve-web build-doc build-web gen gen-news gen-css clean clean-link clean-venv clean-node clean-gen clean-site
+.PHONY: check-venv \
+        check-node \
+        serve-doc  \
+        serve-web  \
+        build-doc  \
+        build-web  \
+        gen        \
+        gen-news   \
+        gen-css    \
+        clean      \
+        clean-link \
+        clean-venv \
+        clean-node \
+        clean-gen  \
+        clean-site \
+
+.PHONY: $(filter check-%, $(MAKECMDGOALS))
 
 $(PY_VENV_DIR)/bin/python:
 	@echo "Creating virtual environment..."
