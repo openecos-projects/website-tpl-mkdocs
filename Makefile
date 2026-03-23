@@ -25,7 +25,7 @@ $(PY_VENV_DIR)/bin/python:
 
 $(NODE_MODULES):
 	@echo "Installing nodejs packages..."
-	npm install tailwindcss @tailwindcss/cli
+	npm install tailwindcss@4.2.2 @tailwindcss/cli@4.2.2 --save-exact
 
 check-venv: $(PY_VENV_DIR)/bin/python
 
