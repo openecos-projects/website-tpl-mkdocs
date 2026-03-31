@@ -13,7 +13,8 @@ FILE_TAILWIND_MIN := tpl/theme/assets/stylesheets/$(FILE_TAILWIND).min.css
 
 FILE_HTML := $(shell find ./src -name "*.html" 2>/dev/null || true)
 
-SITE_DIR := $(READTHEDOCS_OUTPUT)html
+DOC_SITE := $(READTHEDOCS_OUTPUT)html
+WEB_SITE := ./site
 
 .PHONY: check-venv \
         check-node \
@@ -57,12 +58,13 @@ serve-web: check-venv gen
 
 build-doc: check-venv
 	@echo "Building documentation..."
-	. $(PY_ACTIVATE) && mkdocs build -f $(MKDOCS_YML) --site-dir $(SITE_DIR)
-	. $(PY_ACTIVATE) tpl/script/compress_image.py $(SITE_DIR)
+	. $(PY_ACTIVATE) && mkdocs build -f $(MKDOCS_YML) --site-dir $(DOC_SITE)
+	. $(PY_ACTIVATE) && python3 tpl/script/compress_image.py $(DOC_SITE)
 
 build-web: check-venv
 	@echo "Building documentation..."
 	. $(PY_ACTIVATE) && mkdocs build -f $(MKDOCS_YML)
+	. $(PY_ACTIVATE) && python3 tpl/script/compress_image.py $(WEB_SITE)
 
 gen: gen-news gen-css
 
