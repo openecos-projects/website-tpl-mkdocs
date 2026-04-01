@@ -35,71 +35,76 @@ WEB_SITE := ./site
 .PHONY: $(filter check-%, $(MAKECMDGOALS))
 
 $(PY_VENV_DIR)/bin/python:
-	@echo "Creating virtual environment..."
+	@echo "[init] creating virtual environment..."
 	python3 -m venv $(PY_VENV_DIR)
-	@echo "Installing requirements..."
+	@echo "[init] installing requirements..."
 	. $(PY_ACTIVATE) && pip install -r $(PY_REQUIREMENTS)
 
 $(NODE_MODULES):
-	@echo "Installing nodejs packages..."
-	npm install tailwindcss@4.2.2 @tailwindcss/cli@4.2.2 --save-exact
+	@echo "[init] installing nodejs packages..."
+	npm install tailwindcss@4.2.2 @tailwindcss/cli@4.2.2 sharp@0.34.5 --save-exact
 
 check-venv: $(PY_VENV_DIR)/bin/python
 
 check-node: $(NODE_MODULES)
 
 serve-doc: check-venv gen-css
-	@echo "Starting MkDocs server..."
+	@echo "[serve] starting MkDocs server..."
 	. $(PY_ACTIVATE) && mkdocs serve -f $(MKDOCS_YML)
 
 serve-web: check-venv gen
-	@echo "Starting MkDocs server..."
+	@echo "[serve] starting MkDocs server..."
 	. $(PY_ACTIVATE) && mkdocs serve -f $(MKDOCS_YML)
 
 build-doc: check-venv
-	@echo "Building documentation..."
+	@echo "[build] building documentation..."
 	. $(PY_ACTIVATE) && mkdocs build -f $(MKDOCS_YML) --site-dir $(DOC_SITE)
+# 	node tpl/script/compress_image.js $(DOC_SITE)
 	. $(PY_ACTIVATE) && python3 tpl/script/compress_image.py $(DOC_SITE)
 
 build-web: check-venv
-	@echo "Building documentation..."
+	@echo "[build] building documentation..."
 	. $(PY_ACTIVATE) && mkdocs build -f $(MKDOCS_YML)
-	. $(PY_ACTIVATE) && python3 tpl/script/compress_image.py $(WEB_SITE)
+	node tpl/script/compress_image.js $(WEB_SITE)
 
 gen: gen-news gen-css
 
 gen-news: check-venv
-	@echo "Generating news html..."
+	@echo "[gen] generating news html..."
 	. $(PY_ACTIVATE) && python3 tpl/script/generate_news_html.py
 
 gen-css: check-node
-	@echo "Generating tailwind css..."
+	@echo "[gen] generating tailwind css..."
 	npx @tailwindcss/cli -i $(FILE_TAILWIND_INT) -o $(FILE_TAILWIND_MIN) -m
 
 clean: clean-venv clean-node clean-gen clean-site
 
 clean-link:
-	@echo "Cleaning up repository's link..."
-	@for target in $(LINK_TARGET); do \
-		if [ -L "$$target/res" ]; then \
-			echo "Removing symlink: $$target/res"; \
-			rm $$target/res; \
-		fi; \
+	@echo "[clean] deleting softlink..."
+	@for target in $(LINK_TARGET); do  \
+		if [ -d "$$target/res" ]; then \
+			rm -rf $$target/res;       \
+		fi;                            \
 	done
+	@echo "[clean] done!"
 
 clean-venv:
-	@echo "Cleaning up virtual environment..."
+	@echo "[clean] deleting virtual environment..."
 	rm -rf .venv
+	@echo "[clean] done!"
 
 clean-node:
-	@echo "Cleaning up nodejs packages..."
+	@echo "[clean] deleting nodejs packages..."
 	rm -rf $(NODE_MODULES)
 	rm -f package.json package-lock.json
+	@echo "[clean] done!"
 
 clean-gen:
-	@echo "Cleaning up dynamic files..."
+	@echo "[clean] deleting dynamic files..."
 	rm -f $(FILE_HTML) $(FILE_TAILWIND_MIN)
+	@echo "[clean] done!"
 
 clean-site:
-	@echo "Cleaning up site..."
+	@echo "[clean] deleting site..."
 	rm -rf site
+	@echo "[clean] done!"
