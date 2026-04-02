@@ -1,163 +1,161 @@
 #!/usr/bin/env python3
 
+"""generate_news_html.py
+
+Scan a directory of Markdown posts, extract front-matter metadata, and
+generate a small HTML snippet listing the newest posts. The script writes
+language-specific snippets (e.g. `src/zh/news.html`) used by templates.
+
+Usage: run as a script; it currently generates Chinese and English outputs.
+"""
+
 import os
 import re
 import yaml
 from typing import List, Dict, Optional
 
-def get_environment() -> str:
-    """
-    Get the MKDOCS_ENV environment variable.
 
-    Returns:
-        Environment name
+def get_environment() -> str:
+    """Return the current environment name from the MKDOCS_ENV env var.
+
+    Defaults to "serve" when the variable is not set. Callers use this to
+    adjust generated link paths for deployment vs local preview.
     """
     return os.environ.get("MKDOCS_ENV", "serve")
 
+
 def get_meta_data(post_path: str) -> Optional[Dict]:
-    """
-    Extract metadata from the front matter of a Markdown post file.
+    """Extract YAML front-matter metadata from a Markdown file.
+
+    The function looks for the first block delimited by `---` and parses it
+    as YAML. If the front matter is missing or cannot be parsed, None is
+    returned and a warning is printed.
 
     Args:
-        post_path: Path to the Markdown file
+        post_path: Full path to the Markdown file.
 
     Returns:
-        Dictionary containing the parsed YAML front matter, or None if error
+        A dict with parsed metadata (usually containing `date` and `desc`),
+        or None on failure.
     """
     try:
-        # Read the entire post file
         with open(post_path, "r", encoding="utf-8") as f:
             post_file = f.read()
 
-        # Use regex to find content between --- delimiters (front matter)
+        # Capture content between the first pair of --- markers
         meta_match = re.search(r"^---\s*\n(.*?)\n---\s*\n",
                                post_file,
                                re.DOTALL)
 
         if not meta_match:
-            print(f"WARN: meta not found in {post_path}")
+            print(f"[gen] [warn] meta not found in {post_path}")
             return None
 
-        # Parse YAML content from the front matter
         meta_data = yaml.safe_load(meta_match.group(1))
-
         return meta_data
 
     except Exception as e:
-        print(f"ERRO: {e}")
+        print(f"[gen] [fail] {e}")
         return None
 
+
 def get_post_list(post_dir: str) -> List[Dict]:
-    """
-    Scan a directory for Markdown posts and extract their metadata.
+    """Scan `post_dir` for Markdown posts and collect validated metadata.
+
+    Each valid post contributes a dict with keys: `name` (path fragment),
+    `date` (string), and `desc` (summary). Only posts that include both
+    `date` and `desc` in their front-matter are included.
 
     Args:
-        post_dir: Directory path containing Markdown post files
+        post_dir: Directory where post files are stored.
 
     Returns:
-        List of dictionaries containing post metadata, sorted by date (newest first)
+        A list of post metadata dicts sorted by date (newest first).
     """
-    post_list = []
+    post_list: List[Dict] = []
 
-    # Check if the posts directory exists
     if not os.path.exists(post_dir):
-        print(f"ERRO: {post_dir} does not exist")
+        print(f"[gen] [fail] {post_dir} does not exist")
         return post_list
 
-    # Iterate through all files in the post directory
     for post_name in os.listdir(post_dir):
-        # Only process Markdown files
         if not post_name.endswith(".md"):
             continue
 
         post_path = os.path.join(post_dir, post_name)
-
-        # Extract metadata from the post file
         meta_data = get_meta_data(post_path)
 
         if not meta_data:
             continue
 
-        # Get required fields from metadata
         date = meta_data.get("date")
         desc = meta_data.get("desc")
 
-        # Validate that required fields exist
         if not date:
-            print(f"WARN: {post_name} is missing the date field")
+            print(f"[gen] [warn] {post_name} is missing the date field")
             continue
 
         if not desc:
-            print(f"WARN: {post_name} is missing the desc field")
+            print(f"[gen] [warn] {post_name} is missing the desc field")
             continue
 
-        # Add valid post to the list
         post_list.append({
-            "name": post_name.replace(".md", "/"),  # Convert .md to directory path
-            "date": str(date),  # Ensure date is string
-            "desc": desc
+            # Convert filename.md to a path-like fragment used by templates
+            "name": post_name.replace(".md", "/"),
+            "date": str(date),
+            "desc": desc,
         })
 
-        print(f"Find: {post_dir}/{post_name}")
+        print(f"[gen] find {post_dir}/{post_name}")
 
-    # Sort posts by date in descending order (newest first)
+    # Sort by date descending (newest first). Assumes date strings are
+    # comparable; if using complex date formats, consider parsing to datetime.
     post_list.sort(key=lambda x: x["date"], reverse=True)
-
     return post_list
 
+
 def generate_news_html(post_list: List[Dict], html_file: str, post_num: int = 3) -> None:
-    """
-    Generate HTML content from post list and write to file.
+    """Render a small HTML fragment listing the newest posts.
+
+    The generated HTML uses simple wrappers and links. For deployed builds
+    the function may prefix links (e.g. with `/en`) depending on the
+    environment and output filename.
 
     Args:
-        post_list: List of post dictionaries containing metadata
-        html_file: Output HTML file path
-        post_num:  Number of posts displayed
+        post_list: List of post metadata dicts (as returned by get_post_list).
+        html_file: Destination HTML file path to write the fragment.
+        post_num: Number of posts to include (default 3).
     """
     news_path = ""
     html_divs = ""
 
-    if (get_environment() == "deploy"):
+    if get_environment() == "deploy":
         if "en" in html_file:
             news_path = "/en"
 
-    # Display maximum `post_num` posts (or all if less than `post_num`)
+    # Choose posts to display
     post_list_temp = post_list[:post_num] if len(post_list) > post_num else post_list
 
-    # Generate HTML div for each post
     for post in post_list_temp:
-        html_divs += f'''
-<div class="my-4">
-    <a href="{news_path}/news/{post['name']}" style="color: var(--md-typeset-color);">
-        <div class="font-bold">{post['date']}</div>
-        <div>{post['desc']}</div>
-    </a>
-</div>
-'''
+        html_divs += f'''\n<div class="my-4">\n    <a href="{news_path}/news/{post['name']}" style="color: var(--md-typeset-color);">\n        <div class="font-bold">{post['date']}</div>\n        <div>{post['desc']}</div>\n    </a>\n</div>\n'''
 
-    # Add "More" link if there are more than `post_num` posts
     if len(post_list) > post_num:
-        # Use Chinese for Chinese pages, English for others
         more = "查看更多" if "zh" in html_file else "More"
-        html_divs += f'''
-<div class="my-4 text-right">
-    <a href="/news/">{more}</a>
-</div>
-'''
+        html_divs += f'''\n<div class="my-4 text-right">\n    <a href="/news/">{more}</a>\n</div>\n'''
 
-    # Ensure output directory exists
     os.makedirs(os.path.dirname(html_file), exist_ok=True)
-
-    # Write generated HTML to file
     with open(html_file, "w", encoding="utf-8") as f:
         f.write(html_divs)
 
-    print(f"Done: {html_file}")
+    print(f"[gen] done: {html_file}")
+
 
 if __name__ == "__main__":
-    # Generate news HTML for Chinese and English versions
+    # Generate news HTML fragments for Chinese and English pages
     news_lang_list = ["zh", "en"]
     for news_lang in news_lang_list:
-        generate_news_html(get_post_list("src/" + news_lang + "/news/posts"),
-                                         "src/" + news_lang + "/news.html",
-                           4)
+        generate_news_html(
+            get_post_list("src/" + news_lang + "/news/posts"),
+            "src/" + news_lang + "/news.html",
+            4,
+        )

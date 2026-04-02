@@ -1,92 +1,115 @@
 #!/usr/bin/env python3
 
+"""compress_image.py
+
+Small utility to compress PNG and JPEG images in a directory tree using
+external tools (`pngquant` for PNG, `jpegoptim` for JPEG). Designed to be
+run after building a static site (default target directory is `site`).
+
+Behavior notes:
+- PNG files are compressed with `pngquant` producing a temporary file which
+  then replaces the original.
+- JPEG files are processed with `jpegoptim` and overwritten in-place.
+- The script runs compressions in parallel using a thread pool controlled by
+  `THREADS_NUM`.
+- This script modifies files in place; create backups or run on a copy if you
+  want to preserve originals.
+"""
+
 import subprocess
 from pathlib import Path
 import os
 import argparse
 
 # Compression quality settings
-JPG_QUALITY = 80      # 0-100, higher value means better quality
-PNG_QUALITY = "60-80" # Quality range for pngquant (0-100)
-THREADS_NUM = 4       # Number of parallel threads for compression
+JPG_QUALITY = 80       # JPEG quality (0-100), lower => smaller files
+PNG_QUALITY = "60-80"  # pngquant quality range (min-max as percentages)
+THREADS_NUM = 4        # Number of worker threads for parallel processing
 
-def compress_image_once(file_path):
-    """
-    Compress a single image file using appropriate tool based on file extension.
+
+def compress_image_once(file_path: Path) -> None:
+    """Compress a single image file in-place.
+
+    The function chooses the compression tool based on file extension:
+    - .png -> pngquant (writes a temp file then replaces original)
+    - .jpg/.jpeg -> jpegoptim (overwrites original)
+
+    Errors are caught and printed; they do not stop processing other files.
 
     Args:
-        file_path: Path object pointing to the image file to compress
+        file_path: Path object pointing to the image file to compress.
     """
     try:
-        # Handle PNG files with pngquant
-        if file_path.suffix.lower() == ".png":
+        suffix = file_path.suffix.lower()
+
+        if suffix == ".png":
             temp_file = file_path.with_suffix(".tmp.png")
-            # Use pngquant for PNG compression with quality range
+            # Run pngquant to compress PNG into a temporary file
             subprocess.run([
                 "pngquant", "--force",
                 "--quality", PNG_QUALITY,
                 "--output", str(temp_file),
                 str(file_path)
             ], check=True)
-            # Replace original file with compressed version
+            # Replace original with compressed file
             os.replace(temp_file, file_path)
 
-        # Handle JPEG files with jpegoptim
-        elif file_path.suffix.lower() in (".jpg", ".jpeg"):
-            # Use jpegoptim for JPEG compression
+        elif suffix in (".jpg", ".jpeg"):
+            # Run jpegoptim to compress and strip metadata
             subprocess.run([
                 "jpegoptim",
-                "--max=" + str(JPG_QUALITY),  # Set maximum quality level
-                "--strip-all",                 # Remove all metadata
-                "--overwrite",                 # Replace original file
+                "--max=" + str(JPG_QUALITY),
+                "--strip-all",
+                "--overwrite",
                 str(file_path)
             ], check=True)
 
-        # Print compression result with file size
-        print(f"Compressed: {file_path} ({file_path.stat().st_size/1024:.1f} KB)")
+        # Log resulting file size in KB
+        print(f"[compress] [info] {file_path} ({file_path.stat().st_size/1024:.1f} KB)")
 
     except Exception as e:
-        print(f"Failed to compress {file_path}: {str(e)}")
+        # Print the error and continue
+        print(f"[compress] [fail] {file_path}: {e}")
 
-def compress_image(root_dir):
-    """
-    Recursively find and compress all images in directory tree using multi-threading.
+
+def compress_image(root_dir: str) -> None:
+    """Recursively find PNG/JPEG images under `root_dir` and compress them.
+
+    Files are discovered using pathlib's `rglob`. Compression tasks are
+    dispatched to a thread pool for parallel execution.
 
     Args:
-        root_dir: Root directory to search for image files
+        root_dir: Root directory to search for image files.
     """
-    # Supported image file extensions
     image_exts = (".png", ".jpg", ".jpeg")
     image_files = []
 
-    # Recursively find all image files in directory tree
+    # Collect all supported image files recursively
     for ext in image_exts:
-        image_files.extend(Path(root_dir).rglob("*" + ext))
+        image_files.extend(Path(root_dir).rglob(f"*{ext}"))
 
-    # Use thread pool for parallel compression
+    # Compress images in parallel using a thread pool
     from concurrent.futures import ThreadPoolExecutor
     with ThreadPoolExecutor(max_workers=THREADS_NUM) as executor:
-        # Process all images in parallel
         executor.map(compress_image_once, image_files)
 
+
 if __name__ == "__main__":
-    # Set up command line argument parser
     parser = argparse.ArgumentParser(
-        description="Compress PNG and JPEG images in a directory tree"
+        description="Compress PNG and JPEG images in a directory tree (in-place)."
     )
     parser.add_argument(
         "dir",
         type=str,
         nargs="?",
         default="site",
-        help="Directory to compress images in (default: 'site')"
+        help="Directory to compress images in (default: 'site')",
     )
     args = parser.parse_args()
 
-    # Validate that target directory exists
+    # Ensure target directory exists
     if not Path(args.dir).exists():
-        print(f"Error: Directory '{args.dir}' does not exist!")
-        exit(1)
+        print(f"[compress] [fail] directory '{args.dir}' does not exist!")
+        raise SystemExit(1)
 
-    # Start compression process
     compress_image(args.dir)
