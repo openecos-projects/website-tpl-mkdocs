@@ -25,6 +25,7 @@ WEB_SITE := ./site
         gen        \
         gen-news   \
         gen-css    \
+        gen-webp   \
         clean      \
         clean-link \
         clean-venv \
@@ -43,6 +44,7 @@ $(PY_VENV_DIR)/bin/python:
 $(NODE_MODULES):
 	@echo "[init] installing nodejs packages..."
 	npm install tailwindcss@4.2.2 @tailwindcss/cli@4.2.2 sharp@0.34.5 --save-exact
+	npm pkg set type=module
 
 check-venv: $(PY_VENV_DIR)/bin/python
 
@@ -59,15 +61,13 @@ serve-web: check-venv gen
 build-doc: check-venv
 	@echo "[build] building documentation..."
 	. $(PY_ACTIVATE) && mkdocs build -f $(MKDOCS_YML) --site-dir $(DOC_SITE)
-# 	node tpl/script/compress_image.js $(DOC_SITE)
 	. $(PY_ACTIVATE) && python3 tpl/script/compress_image.py $(DOC_SITE)
 
 build-web: check-venv
 	@echo "[build] building documentation..."
 	. $(PY_ACTIVATE) && mkdocs build -f $(MKDOCS_YML)
-	node tpl/script/compress_image.js $(WEB_SITE)
 
-gen: gen-news gen-css
+gen: gen-news gen-css gen-webp
 
 gen-news: check-venv
 	@echo "[gen] generating news html..."
@@ -76,6 +76,10 @@ gen-news: check-venv
 gen-css: check-node
 	@echo "[gen] generating tailwind css..."
 	npx @tailwindcss/cli -i $(FILE_TAILWIND_INT) -o $(FILE_TAILWIND_MIN) -m
+
+gen-webp:
+	@echo "[gen] generating webp images..."
+	node tpl/script/compress_image.js ./res
 
 clean: clean-venv clean-node clean-gen clean-site
 
