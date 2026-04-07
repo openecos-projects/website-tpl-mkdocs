@@ -141,7 +141,7 @@ def generate_news_html(post_list: List[Dict], html_file: str, post_num: int = 3)
 
     if len(post_list) > post_num:
         more = "查看更多" if "zh" in html_file else "More"
-        html_divs += f'''\n<div class="my-4 text-right">\n    <a href="/news/">{more}</a>\n</div>\n'''
+        html_divs += f'''\n<div class="my-4 text-right">\n    <a href="{news_path}/news/">{more}</a>\n</div>\n'''
 
     os.makedirs(os.path.dirname(html_file), exist_ok=True)
     with open(html_file, "w", encoding="utf-8") as f:
