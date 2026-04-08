@@ -1,3 +1,7 @@
+ifneq (,$(findstring /tpl, $(CURDIR)))
+    $(error [fail] please cd to "doc" or "web" dir before running make)
+endif
+
 MKDOCS_LANG ?= zh
 MKDOCS_YML  := mkdocs_$(MKDOCS_LANG).yml
 
