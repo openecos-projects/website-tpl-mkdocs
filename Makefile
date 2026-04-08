@@ -22,7 +22,8 @@ WEB_SITE := ./site
         serve-web  \
         build-doc  \
         build-web  \
-        gen        \
+        gen-doc    \
+        gen-web    \
         gen-news   \
         gen-css    \
         gen-webp   \
@@ -50,24 +51,25 @@ check-venv: $(PY_VENV_DIR)/bin/python
 
 check-node: $(NODE_MODULES)
 
-serve-doc: check-venv gen-css
+serve-doc: check-venv gen-doc
 	@echo "[serve] starting MkDocs server..."
 	. $(PY_ACTIVATE) && mkdocs serve -f $(MKDOCS_YML)
 
-serve-web: check-venv gen
+serve-web: check-venv gen-web
 	@echo "[serve] starting MkDocs server..."
 	. $(PY_ACTIVATE) && mkdocs serve -f $(MKDOCS_YML)
 
 build-doc: check-venv
 	@echo "[build] building documentation..."
 	. $(PY_ACTIVATE) && mkdocs build -f $(MKDOCS_YML) --site-dir $(DOC_SITE)
-	. $(PY_ACTIVATE) && python3 tpl/script/compress_image.py $(DOC_SITE)
 
 build-web: check-venv
 	@echo "[build] building documentation..."
 	. $(PY_ACTIVATE) && mkdocs build -f $(MKDOCS_YML)
 
-gen: gen-news gen-css gen-webp
+gen-doc: gen-css gen-webp
+
+gen-web: gen-news gen-css gen-webp
 
 gen-news: check-venv
 	@echo "[gen] generating news html..."
