@@ -95,12 +95,6 @@
         place-items: center;
     }
 }
-.ecos-img {
-    a {
-        display: flex;
-        justify-content: center;
-    }
-}
 
 [data-md-color-scheme="ecos-light"] {
     --md-typeset-a-color: #ff710d !important;
