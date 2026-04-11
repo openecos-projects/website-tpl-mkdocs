@@ -40,6 +40,7 @@ plugins:
       branch: main
       exclude:
         - index.md
+  - mkdocs-video
 
 extra:
   alternate:
