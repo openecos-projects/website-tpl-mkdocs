@@ -95,6 +95,31 @@
         place-items: center;
     }
 }
+.ecos-pdk-member {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    width: 100%;
+    flex-wrap: nowrap;
+    a {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        min-width: 0;
+    }
+    a:first-child {
+        flex: 0 0 45%;
+    }
+    a:last-child {
+        flex: 0 0 calc(55% - 12px);
+    }
+    img {
+        max-width: 100%;
+        max-height: 160px;
+        object-fit: contain;
+    }
+}
 
 [data-md-color-scheme="ecos-light"] {
     --md-typeset-a-color: #ff710d !important;
