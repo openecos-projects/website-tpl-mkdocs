@@ -5,6 +5,7 @@ endif
 MKDOCS_LANG     ?= zh
 MKDOCS_YML      := mkdocs_$(MKDOCS_LANG).yml
 MKDOCS_DEV_ADDR ?= 127.0.0.1:8000
+MKDOCS_ADDR     ?= $(MKDOCS_DEV_ADDR)
 
 PY_VENV_DIR := .venv
 PY_ACTIVATE := $(PY_VENV_DIR)/bin/activate
@@ -58,11 +59,11 @@ check-node: $(NODE_MODULES)
 
 serve-doc: check-venv gen-doc
 	@echo "[serve] starting MkDocs server..."
-	. $(PY_ACTIVATE) && mkdocs serve -f $(MKDOCS_YML) --dev-addr $(MKDOCS_DEV_ADDR)
+	. $(PY_ACTIVATE) && mkdocs serve -f $(MKDOCS_YML) --dev-addr $(MKDOCS_ADDR)
 
 serve-web: check-venv gen-web
 	@echo "[serve] starting MkDocs server..."
-	. $(PY_ACTIVATE) && mkdocs serve -f $(MKDOCS_YML) --dev-addr $(MKDOCS_DEV_ADDR)
+	. $(PY_ACTIVATE) && mkdocs serve -f $(MKDOCS_YML) --dev-addr $(MKDOCS_ADDR)
 
 build-doc: check-venv
 	@echo "[build] building documentation..."
